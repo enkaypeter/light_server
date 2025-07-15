@@ -1,6 +1,9 @@
 package serverless
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // ServerlessFunc is the signature of any function we can wrap.
 type ServerlessFunc func(ctx context.Context, input any) (any, error)
@@ -10,7 +13,7 @@ type Config struct {
 	CPU      int         // number of cores to request
 	MemoryMB int         // memory limit in MB
 	GPU      bool        // whether to request GPU
-	Timeout  interface{} // placeholder: will become time.Duration
+	Timeout  time.Duration // placeholder: will become time.Duration
 	UseCache bool        // whether to reuse warm containers
 }
 
