@@ -13,7 +13,7 @@ type Config struct {
 	CPU      int         // number of cores to request
 	MemoryMB int         // memory limit in MB
 	GPU      bool        // whether to request GPU
-	Timeout  time.Duration // placeholder: will become time.Duration
+	Timeout  time.Duration // maximum execution time
 	UseCache bool        // whether to reuse warm containers
 }
 

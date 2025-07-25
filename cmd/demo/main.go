@@ -10,33 +10,38 @@ import (
 )
 
 func main() {
-	serverless.DefaultRunner = &runner.LocalRunner{}
+	serverless.DefaultRunner = &runner.DockerRunner{
+		Image:   "enkaypeter/mobilenet-onnx-runner:v0.1.0",
+		WorkDir: "",               // defaults to current working directory
+		Timeout: 60 * time.Second,
+	}
 
-	busyWork := serverless.ServerlessFunc(func(ctx context.Context, input any) (any, error) {
-		// simulate ~50 ms of pure CPU work
-		const N = 5_000_000
-		var acc uint64
-		for i := 0; i < N; i++ {
-			acc += uint64(i) * uint64(i)
-		}
-		return acc, nil
+	classifyFn := serverless.ServerlessFunc(func(ctx context.Context, input any) (any, error) {
+		return nil, nil
 	})
 
-	// 3) resource wrapper with a 1s timeout:
+	// 3) resource wrapper with a 1m timeout:
 	cfg := serverless.Config{
 		CPU:      1,
-		MemoryMB: 64,
+		MemoryMB: 128, // 128 MB memory limit
 		GPU:      false,
-		Timeout:  1 * time.Second,
+		Timeout:  60 * time.Second,
 		UseCache: false,
 	}
-	wrapped := serverless.Wrap(busyWork, cfg)
 
-	// 4) Invoke and print execution result:
-	res, err := wrapped(context.Background(), "Hello, Phase 2!")
+	// 4. Wrap the stub function
+	wrapped := serverless.Wrap(classifyFn, cfg)
+
+	// 5. Invoke with a sample input
+	inputPath := "images/cat.jpg"
+	fmt.Printf("Invoking container for input: %s\n\n", inputPath)
+
+	result, err := wrapped(context.Background(), inputPath)
 	if err != nil {
-		fmt.Println("Invocation error:", err)
+		fmt.Println("Error during invocation:", err)
 		return
 	}
-	fmt.Println("Result:", res)
+
+	// 6. Print out the raw container output
+	fmt.Printf("\n=== Container Output ===\n%s\n", result)
 }
